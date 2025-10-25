@@ -5,7 +5,8 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'yaml';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@as-integrations/express4';
 import { PrismaClient } from '@prisma/client';
 import { MongoClient } from 'mongodb';
 
@@ -93,7 +94,7 @@ const resolvers = {
       // Severity rule: if category=BLADE_DAMAGE and notes contain "crack", min severity=4
       const adjusted = inspection.findings.map(f => {
         const hasCrack = (f.notes || '').toLowerCase().includes('crack');
-        const severity = (f.category === 'BLADE_DAMAGE' and hasCrack) ? Math.max(4, f.severity) : f.severity;
+        const severity = (f.category === 'BLADE_DAMAGE' && hasCrack) ? Math.max(4, f.severity) : f.severity;
         return { ...f, severity };
       });
 
@@ -130,7 +131,10 @@ const resolvers = {
 
 const server = new ApolloServer({ typeDefs, resolvers });
 await server.start();
-server.applyMiddleware({ app, path: '/graphql' });
+app.use(
+  '/graphql',
+  expressMiddleware(server),
+);
 
 const port = Number(process.env.PORT || 4000);
 app.listen(port, () => console.log(`Backend on http://localhost:${port}`));
