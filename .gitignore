@@ -5,6 +5,5 @@ node_modules/
 .env
 .env.*
 
-package-lock.json
 backend/prisma/migrations/migration_lock.toml
 backend/prisma/migrations/20251025125921_init/migration.sql
