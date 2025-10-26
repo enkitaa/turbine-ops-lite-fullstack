@@ -17,7 +17,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "cd .. && npx husky init"
+    "prepare": "husky"
   },
   "dependencies": {
     "@apollo/server": "^5.0.0",
