@@ -8,3 +8,7 @@ export { hasUser, requireUser } from "../types/express";
 export { signJwt, verifyJwt, decodeJwt } from "../utils/jwt";
 export { hashPassword, verifyPassword, validatePasswordStrength } from "../utils/password";
 export { AuthService, createAuthService } from "../utils/auth";
+
+// Middleware
+export { requireAuth, requireRole } from "../middleware/auth";
+export { errorHandler, notFoundHandler } from "../middleware/error";
