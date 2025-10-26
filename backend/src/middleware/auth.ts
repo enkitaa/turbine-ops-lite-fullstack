@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
-import type { UserRole } from "../types/auth";
-import { verifyJwt } from "../utils/jwt";
+import type { UserRole } from "../types/auth.js";
+import { verifyJwt } from "../utils/jwt.js";
 
 export const requireAuth = (req: Request, res: Response, next: NextFunction): Response | void => {
   try {

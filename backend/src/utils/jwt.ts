@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import type { JwtUser, JwtPayload } from "../types/auth";
+import type { JwtUser, JwtPayload } from "../types/auth.js";
 
 // Signs a JWT token with the provided user information
 

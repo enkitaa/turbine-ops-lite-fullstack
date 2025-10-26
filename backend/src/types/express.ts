@@ -1,6 +1,6 @@
 import type { Request } from "express";
 
-import type { JwtUser } from "./auth";
+import type { JwtUser } from "./auth.js";
 
 declare global {
   namespace Express {

@@ -1,7 +1,7 @@
-import type { JwtUser, AuthConfig } from "../types/auth";
+import type { JwtUser, AuthConfig } from "../types/auth.js";
 
-import { signJwt, verifyJwt } from "./jwt";
-import { hashPassword, verifyPassword, validatePasswordStrength } from "./password";
+import { signJwt, verifyJwt } from "./jwt.js";
+import { hashPassword, verifyPassword, validatePasswordStrength } from "./password.js";
 
 export class AuthService {
   private readonly config: AuthConfig;

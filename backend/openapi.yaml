@@ -9,14 +9,89 @@ paths:
     get:
       summary: Health check
       responses:
-        '200':
+        "200":
           description: OK
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticate user with email and password, receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                password:
+                  type: string
+                  format: password
+                  example: admin123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT bearer token
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      email:
+                        type: string
+                        example: admin@example.com
+                      name:
+                        type: string
+                        example: Admin
+                      role:
+                        type: string
+                        enum: [ADMIN, ENGINEER, VIEWER]
+                        example: ADMIN
+        "400":
+          description: Bad request - missing email or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Bad Request
+                  message:
+                    type: string
+                    example: Email and password are required
+        "401":
+          description: Unauthorized - invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+                  message:
+                    type: string
+                    example: Invalid email or password
   /turbines:
     get:
       summary: List turbines
       responses:
-        '200': { description: OK }
+        "200": { description: OK }
     post:
       summary: Create turbine
       responses:
-        '201': { description: Created }
+        "201": { description: Created }
