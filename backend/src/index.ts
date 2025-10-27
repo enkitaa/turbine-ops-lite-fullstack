@@ -16,6 +16,13 @@ import {
   updateTurbineHandler,
   deleteTurbineHandler,
 } from "./routes/turbines.js";
+import {
+  getInspectionsHandler,
+  getInspectionHandler,
+  createInspectionHandler,
+  updateInspectionHandler,
+  deleteInspectionHandler,
+} from "./routes/inspections.js";
 import { requireAuth, requireRole } from "./middleware/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 
@@ -64,6 +71,37 @@ app.post("/api/turbines", requireAuth, requireRole("ADMIN", "ENGINEER"), createT
 app.put("/api/turbines/:id", requireAuth, requireRole("ADMIN", "ENGINEER"), updateTurbineHandler);
 
 app.delete("/api/turbines/:id", requireAuth, requireRole("ADMIN"), deleteTurbineHandler);
+
+// Inspection CRUD routes with RBAC
+app.get(
+  "/api/inspections",
+  requireAuth,
+  requireRole("ADMIN", "ENGINEER", "VIEWER"),
+  getInspectionsHandler,
+);
+
+app.get(
+  "/api/inspections/:id",
+  requireAuth,
+  requireRole("ADMIN", "ENGINEER", "VIEWER"),
+  getInspectionHandler,
+);
+
+app.post(
+  "/api/inspections",
+  requireAuth,
+  requireRole("ADMIN", "ENGINEER"),
+  createInspectionHandler,
+);
+
+app.put(
+  "/api/inspections/:id",
+  requireAuth,
+  requireRole("ADMIN", "ENGINEER"),
+  updateInspectionHandler,
+);
+
+app.delete("/api/inspections/:id", requireAuth, requireRole("ADMIN"), deleteInspectionHandler);
 
 // SSE for plan notifications
 const sseClients = new Set<any>();
