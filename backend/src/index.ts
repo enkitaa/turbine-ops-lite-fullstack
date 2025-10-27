@@ -23,6 +23,12 @@ import {
   updateInspectionHandler,
   deleteInspectionHandler,
 } from "./routes/inspections.js";
+import {
+  getFindingsHandler,
+  createFindingHandler,
+  updateFindingHandler,
+  deleteFindingHandler,
+} from "./routes/findings.js";
 import { requireAuth, requireRole } from "./middleware/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 
@@ -102,6 +108,20 @@ app.put(
 );
 
 app.delete("/api/inspections/:id", requireAuth, requireRole("ADMIN"), deleteInspectionHandler);
+
+// Findings CRUD routes with RBAC
+app.get(
+  "/api/findings",
+  requireAuth,
+  requireRole("ADMIN", "ENGINEER", "VIEWER"),
+  getFindingsHandler,
+);
+
+app.post("/api/findings", requireAuth, requireRole("ADMIN", "ENGINEER"), createFindingHandler);
+
+app.put("/api/findings/:id", requireAuth, requireRole("ADMIN", "ENGINEER"), updateFindingHandler);
+
+app.delete("/api/findings/:id", requireAuth, requireRole("ADMIN"), deleteFindingHandler);
 
 // SSE for plan notifications
 const sseClients = new Set<any>();
