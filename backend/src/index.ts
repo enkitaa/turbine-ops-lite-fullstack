@@ -10,6 +10,13 @@ import { expressMiddleware } from "@as-integrations/express4";
 import { PrismaClient } from "@prisma/client";
 import { MongoClient } from "mongodb";
 import { loginHandler } from "./routes/auth.js";
+import {
+  getTurbinesHandler,
+  createTurbineHandler,
+  updateTurbineHandler,
+  deleteTurbineHandler,
+} from "./routes/turbines.js";
+import { requireAuth, requireRole } from "./middleware/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 
 const app = express();
@@ -44,18 +51,19 @@ let mongoClient: MongoClient | null = null;
   }
 })();
 
-// Simple REST stubs
-app.get("/api/turbines", async (_req, res) => {
-  const data = await prisma.turbine.findMany({ take: 50 });
-  res.json(data);
-});
+// Turbine CRUD routes with RBAC
+app.get(
+  "/api/turbines",
+  requireAuth,
+  requireRole("ADMIN", "ENGINEER", "VIEWER"),
+  getTurbinesHandler,
+);
 
-app.post("/api/turbines", async (req, res) => {
-  const { name, manufacturer, mwRating, lat, lng } = req.body || {};
-  if (!name) return res.status(400).json({ error: "name required" });
-  const t = await prisma.turbine.create({ data: { name, manufacturer, mwRating, lat, lng } });
-  res.status(201).json(t);
-});
+app.post("/api/turbines", requireAuth, requireRole("ADMIN", "ENGINEER"), createTurbineHandler);
+
+app.put("/api/turbines/:id", requireAuth, requireRole("ADMIN", "ENGINEER"), updateTurbineHandler);
+
+app.delete("/api/turbines/:id", requireAuth, requireRole("ADMIN"), deleteTurbineHandler);
 
 // SSE for plan notifications
 const sseClients = new Set<any>();
