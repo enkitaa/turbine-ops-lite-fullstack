@@ -60,7 +60,9 @@ describe("Turbine CRUD Operations", () => {
 
   afterAll(async () => {
     // Cleanup
-    await prisma.turbine.delete({ where: { id: testTurbine.id } }).catch(() => {});
+    if (testTurbine?.id) {
+      await prisma.turbine.delete({ where: { id: testTurbine.id } }).catch(() => {});
+    }
     await prisma.$disconnect();
   });
 
