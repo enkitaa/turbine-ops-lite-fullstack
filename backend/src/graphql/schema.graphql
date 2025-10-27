@@ -53,6 +53,14 @@ type RepairPlan {
 }
 
 type Query {
+  turbines: [Turbine!]!
+  turbine(id: ID!): Turbine
+  inspections(
+    turbineId: ID
+    startDate: String
+    endDate: String
+    dataSource: DataSource
+  ): [Inspection!]!
   inspection(id: ID!): Inspection
   repairPlan(inspectionId: ID!): RepairPlan
 }
