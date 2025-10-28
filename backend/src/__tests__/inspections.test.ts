@@ -125,6 +125,59 @@ describe("Inspection CRUD Operations & Overlap Prevention", () => {
         expect(inspection.dataSource).toBe("DRONE");
       });
     });
+
+    it("should filter inspections by date range", async () => {
+      const response = await request(app)
+        .get("/inspections")
+        .query({ startDate: "2024-01-01", endDate: "2024-12-31" })
+        .set("Authorization", `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      response.body.forEach((inspection: any) => {
+        const inspectionDate = new Date(inspection.date);
+        expect(inspectionDate >= new Date("2024-01-01")).toBe(true);
+        expect(inspectionDate <= new Date("2024-12-31")).toBe(true);
+      });
+    });
+
+    it("should filter inspections by searchNotes in findings", async () => {
+      // Create an inspection with a finding that has specific notes
+      const testInspectionWithFinding = await prisma.inspection.create({
+        data: {
+          turbineId: testTurbine.id,
+          date: new Date("2024-05-01"),
+          dataSource: "DRONE",
+        },
+      });
+
+      await prisma.finding.create({
+        data: {
+          inspectionId: testInspectionWithFinding.id,
+          category: "BLADE_DAMAGE",
+          severity: 5,
+          estimatedCost: 1000,
+          notes: "Crack found in blade section A",
+        },
+      });
+
+      const response = await request(app)
+        .get("/inspections")
+        .query({ searchNotes: "crack" })
+        .set("Authorization", `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      // Should find the inspection with crack in notes
+      const hasCrackInNotes = response.body.some((inspection: any) =>
+        inspection.findings.some((f: any) => f.notes?.toLowerCase().includes("crack")),
+      );
+      expect(hasCrackInNotes).toBe(true);
+
+      // Cleanup
+      await prisma.finding.deleteMany({ where: { inspectionId: testInspectionWithFinding.id } });
+      await prisma.inspection.delete({ where: { id: testInspectionWithFinding.id } });
+    });
   });
 
   describe("GET /api/inspections/:id", () => {

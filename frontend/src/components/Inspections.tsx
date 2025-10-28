@@ -4,7 +4,7 @@ import type { Inspection, Turbine, Finding } from "./types";
 interface InspectionsPageProps {
   inspections: Inspection[];
   turbines: Turbine[];
-  onReload: () => void;
+  onReload: (filters?: FilterState) => void;
   token: string;
 }
 
@@ -18,6 +18,14 @@ interface FormState {
   rawPackageUrl: string;
 }
 
+interface FilterState {
+  turbineId: string;
+  startDate: string;
+  endDate: string;
+  dataSource: string;
+  searchNotes: string;
+}
+
 export const InspectionsPage: React.FC<InspectionsPageProps> = ({ inspections, turbines, onReload, token }) => {
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -28,6 +36,29 @@ export const InspectionsPage: React.FC<InspectionsPageProps> = ({ inspections, t
     dataSource: "DRONE" as const,
     rawPackageUrl: "",
   });
+  const [filters, setFilters] = useState<FilterState>({
+    turbineId: "",
+    startDate: "",
+    endDate: "",
+    dataSource: "",
+    searchNotes: "",
+  });
+
+  const applyFilters = () => {
+    onReload(filters);
+  };
+
+  const clearFilters = () => {
+    const emptyFilters = {
+      turbineId: "",
+      startDate: "",
+      endDate: "",
+      dataSource: "",
+      searchNotes: "",
+    };
+    setFilters(emptyFilters);
+    onReload(emptyFilters);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,6 +199,73 @@ export const InspectionsPage: React.FC<InspectionsPageProps> = ({ inspections, t
         <button onClick={() => setShowCreate(!showCreate)} style={{ padding: "8px 16px" }}>
           {showCreate ? "Cancel" : "+ Create Inspection"}
         </button>
+      </div>
+
+      <div style={{ marginBottom: 16, padding: 16, border: "1px solid #ddd", borderRadius: 4, backgroundColor: "#f9f9f9" }}>
+        <h3 style={{ marginTop: 0 }}>Filter Inspections</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+          <div>
+            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Turbine:</label>
+            <select
+              value={filters.turbineId}
+              onChange={(e) => setFilters({ ...filters, turbineId: e.target.value })}
+              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
+            >
+              <option value="">All Turbines</option>
+              {turbines.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Data Source:</label>
+            <select
+              value={filters.dataSource}
+              onChange={(e) => setFilters({ ...filters, dataSource: e.target.value })}
+              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
+            >
+              <option value="">All Sources</option>
+              <option value="DRONE">Drone</option>
+              <option value="MANUAL">Manual</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Start Date:</label>
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>End Date:</label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Search Notes:</label>
+            <input
+              type="text"
+              placeholder="Search in findings notes..."
+              value={filters.searchNotes}
+              onChange={(e) => setFilters({ ...filters, searchNotes: e.target.value })}
+              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
+            />
+          </div>
+        </div>
+        <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+          <button onClick={applyFilters} style={{ padding: "8px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
+            Apply Filters
+          </button>
+          <button onClick={clearFilters} style={{ padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       {showCreate && (

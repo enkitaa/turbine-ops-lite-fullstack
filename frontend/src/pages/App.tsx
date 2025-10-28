@@ -49,17 +49,27 @@ export const App: React.FC = () => {
     };
   }, [token, page]);
 
-  const loadData = async () => {
+  const loadData = async (filters?: any) => {
     setLoading(true);
     try {
-      const [turbinesRes, inspectionsRes] = await Promise.all([
-        fetch(`${API_BASE}/api/turbines`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}/api/inspections`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const turbinesRes = await fetch(`${API_BASE}/api/turbines`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      const searchParams = new URLSearchParams();
+      if (filters) {
+        if (filters.turbineId) searchParams.append("turbineId", filters.turbineId);
+        if (filters.startDate) searchParams.append("startDate", filters.startDate);
+        if (filters.endDate) searchParams.append("endDate", filters.endDate);
+        if (filters.dataSource) searchParams.append("dataSource", filters.dataSource);
+        if (filters.searchNotes) searchParams.append("searchNotes", filters.searchNotes);
+      }
+      
+      const inspectionsUrl = `${API_BASE}/api/inspections${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      const inspectionsRes = await fetch(inspectionsUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
       const turbinesData = await turbinesRes.json();
       const inspectionsData = await inspectionsRes.json();
       setTurbines(turbinesData);
