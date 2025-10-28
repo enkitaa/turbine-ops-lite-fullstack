@@ -255,9 +255,9 @@ export const App: React.FC = () => {
             >
               Inspections
             </Button>
-            <IconButton color="inherit" onClick={handleLogout}>
-              <LogoutIcon />
-            </IconButton>
+            <Button color="inherit" startIcon={<LogoutIcon />} onClick={handleLogout}>
+              Logout
+            </Button>
           </Toolbar>
         </AppBar>
 
@@ -318,8 +318,8 @@ const LoginPage: React.FC<{ onLogin: (email: string, password: string) => void }
         }}
       >
         <Box sx={{ textAlign: "center", mb: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, color: "primary.main" }}>
-            TurbineOps Lite
+          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, color: "primary.main" }}>
+            Login
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Wind Turbine Asset Management Platform

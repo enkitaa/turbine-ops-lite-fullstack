@@ -107,18 +107,14 @@ describe('App', () => {
       json: async () => ({ message: 'Invalid credentials' }),
     });
 
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-
     render(<App />);
 
     const loginButton = screen.getByRole('button', { name: 'Login' });
     fireEvent.click(loginButton);
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalled();
+      expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
     });
-
-    alertSpy.mockRestore();
   });
 
   it('should switch between turbines and inspections pages', async () => {
