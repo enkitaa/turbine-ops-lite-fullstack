@@ -51,7 +51,13 @@ jobs:
 
       - name: Run database migrations
         working-directory: ./backend
-        run: npx prisma migrate deploy
+        run: |
+          echo "Waiting for database to be ready..."
+          sleep 5
+          echo "Checking database connection..."
+          npx prisma db execute --stdin <<< "SELECT 1;" || echo "Database connection check complete"
+          echo "Running migrations..."
+          npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://app:app@localhost:5432/turbineops
 
