@@ -1,72 +1,93 @@
 # Testing
 
-## Backend
+## Backend Tests
+
+### Run Tests
+
 ```bash
 cd backend
 npm test
 ```
 
-### Implemented Tests
+### Test Files
 
-**Unit Tests:**
-- Priority logic (`rules.test.ts`)
-  - Tests priority derivation from max severity (LOW/MEDIUM/HIGH)
-  
-**Integration Tests (Supertest):**
-- Turbine CRUD operations (`turbines.test.ts`)
-  - GET, POST, PUT, DELETE operations
-  - Input validation
-  - Role-based access control
-  - Boundary value testing
+**rules.test.ts** - Priority logic
+- Derives priority from max severity (HIGH ≥5, MEDIUM 3-4, LOW <3)
 
-- Inspection CRUD + Overlap Prevention (`inspections.test.ts`)
-  - GET, POST, PUT, DELETE operations
-  - **Overlap prevention**: Prevents creating overlapping inspections on same turbine/date
-  - Filtering by turbineId, dataSource, date range
-  - Error handling
+**turbines.test.ts** (24 tests)
+- GET, POST, PUT, DELETE operations
+- Input validation (name, mwRating, lat/lng)
+- RBAC enforcement
+- Conflict handling (turbine with inspections)
 
-- Finding CRUD + Severity Derivation (`findings.test.ts`)
-  - GET, POST, PUT, DELETE operations
-  - **Severity derivation**: BLADE_DAMAGE + "crack" in notes → minimum severity 4
-  - Case-insensitive matching for severity rule
-  - Input validation
+**inspections.test.ts** (18 tests)
+- CRUD operations
+- Overlap prevention (same turbine/date → 409)
+- Filtering (turbineId, dataSource, date range, searchNotes)
+- RBAC enforcement
 
-- Repair Plan Generation (`repair-plan.test.ts`)
-  - GraphQL mutation integration
-  - Priority calculation from max severity
-  - Severity adjustment in plan generation
-  - Cost summation
-  - Happy path coverage
+**findings.test.ts** (17 tests)
+- CRUD operations
+- Severity rule (BLADE_DAMAGE + "crack" → min severity 4)
+- Case-insensitive matching
+- Validation (severity 1-10, cost ≥0)
+- RBAC enforcement
 
-**Other Tests:**
-- Auth service (`auth.test.ts`)
-- JWT utilities (`jwt.test.ts`)
-- Login handler (`login.test.ts`)
-- Middleware (`middleware.test.ts`)
-- Password utilities (`password.test.ts`)
+**repair-plan.test.ts** (8 tests)
+- Priority calculation (HIGH/MEDIUM/LOW)
+- Severity rule application
+- Cost summation
+- GraphQL mutation integration
 
-## Frontend
+**auth.test.ts, jwt.test.ts, login.test.ts, middleware.test.ts, password.test.ts**
+- Authentication and authorization logic
+
+## Frontend Tests
+
+### Run Tests
+
 ```bash
 cd frontend
 npm test
 ```
 
-### Implemented Tests
+### Test Files
 
-**Component Tests (Vitest + React Testing Library):**
-- `App.test.tsx` - Main application component
-  - Login/logout flow
-  - Page navigation
-  - Form interactions
-  
-- `Turbines.test.tsx` - Turbines component
-  - Turbine list rendering
-  - Create/edit/delete forms
-  - Empty states
-  - Form field validation
-  
-- `Inspections.test.tsx` - Inspections component
-  - Inspection list rendering
-  - Create form
-  - Details view
-  - Findings display
+**App.test.tsx** (8 tests)
+- Login/logout
+- Page navigation
+- SSE connection
+
+**Turbines.test.tsx** (9 tests)
+- List rendering
+- Create/edit/delete forms
+- Empty states
+- Validation
+
+**Inspections.test.tsx** (10 tests)
+- List rendering
+- Create form
+- Details view
+- Filter UI
+- Findings display
+
+## CI/CD
+
+Tests run automatically on GitHub Actions on every push/PR:
+- Backend tests with PostgreSQL service
+- Frontend tests with mocked APIs
+- Both build and test in CI workflow
+
+## Business Rules Coverage
+
+All business rules are tested:
+- Overlap prevention for inspections
+- Severity derivation rule (BLADE_DAMAGE + crack)
+- Priority calculation from max severity
+- RBAC enforcement across all endpoints
+
+## Test Configuration
+
+**Backend**: PostgreSQL with migrations and seed data  
+**Frontend**: Mocks for EventSource, localStorage, fetch  
+**UUID**: All test data cleaned up after each suite
