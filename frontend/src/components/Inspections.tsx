@@ -1,4 +1,35 @@
 import React, { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Grid,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Card,
+  CardContent,
+  CardActions,
+  Chip,
+  Divider,
+  IconButton,
+} from "@mui/material";
+import {
+  Add as AddIcon,
+  Description as DescriptionIcon,
+  Assessment as AssessmentIcon,
+  Flight as FlightIcon,
+  Person as PersonIcon,
+  CalendarToday as CalendarIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 import type { Inspection, Turbine, Finding } from "./types";
 
 interface InspectionsPageProps {
@@ -143,196 +174,415 @@ export const InspectionsPage: React.FC<InspectionsPageProps> = ({ inspections, t
 
   if (selectedInspection) {
     return (
-      <div>
-        <button onClick={() => setSelectedInspection(null)} style={{ marginBottom: 16 }}>
-          ← Back
-        </button>
-        <div style={{ border: "1px solid #ccc", padding: 16, borderRadius: 4 }}>
-          <h2>Inspection Details</h2>
-          <p>Turbine: {selectedInspection.turbine.name}</p>
-          <p>Date: {new Date(selectedInspection.date).toLocaleDateString()}</p>
-          <p>Data Source: {selectedInspection.dataSource}</p>
-          {selectedInspection.inspectorName && <p>Inspector: {selectedInspection.inspectorName}</p>}
-
-          <div style={{ marginTop: 16 }}>
-            <h3>Findings</h3>
-            {selectedInspection.findings.length === 0 && (
-              <p>No findings yet. <button onClick={() => addFinding(selectedInspection.id)}>Add Finding</button></p>
+      <Box>
+        <Button
+          startIcon={<DescriptionIcon />}
+          onClick={() => setSelectedInspection(null)}
+          sx={{ mb: 3 }}
+        >
+          ← Back to Inspections
+        </Button>
+        
+        <Paper
+          sx={{
+            p: 4,
+            background: "linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 153, 204, 0.1) 100%)",
+            border: "1px solid rgba(0, 212, 255, 0.2)",
+          }}
+        >
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+            Inspection Details
+          </Typography>
+          
+          <Divider sx={{ my: 3 }} />
+          
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography variant="body2" color="text.secondary">
+                Turbine
+              </Typography>
+              <Typography variant="h6">{selectedInspection.turbine.name}</Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography variant="body2" color="text.secondary">
+                Date
+              </Typography>
+              <Typography variant="h6">
+                  {new Date(selectedInspection.date).toLocaleDateString()}
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography variant="body2" color="text.secondary">
+                Data Source
+              </Typography>
+              <Chip
+                icon={selectedInspection.dataSource === "DRONE" ? <FlightIcon /> : <PersonIcon />}
+                label={selectedInspection.dataSource}
+                sx={{ mt: 1 }}
+              />
+            </Grid>
+            {selectedInspection.inspectorName && (
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Inspector
+                </Typography>
+                <Typography variant="h6">{selectedInspection.inspectorName}</Typography>
+              </Grid>
             )}
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {selectedInspection.findings.map((f) => (
-                <li key={f.id} style={{ border: "1px solid #ddd", padding: 8, marginBottom: 8, borderRadius: 4 }}>
-                  <strong>{f.category}</strong> - Severity: {f.severity} - Cost: ${f.estimatedCost}
-                  {f.notes && <p style={{ margin: 4, fontSize: "0.9em", color: "#666" }}>{f.notes}</p>}
-                </li>
-              ))}
-            </ul>
-            {selectedInspection.findings.length > 0 && (
-              <button onClick={() => addFinding(selectedInspection.id)} style={{ marginTop: 8 }}>
-                Add Another Finding
-              </button>
-            )}
-          </div>
+          </Grid>
 
-          <div style={{ marginTop: 16 }}>
-            <h3>Repair Plan</h3>
-            {selectedInspection.repairPlan ? (
-              <div style={{ backgroundColor: "#f0f0f0", padding: 12, borderRadius: 4 }}>
-                <p><strong>Priority:</strong> {selectedInspection.repairPlan.priority}</p>
-                <p><strong>Total Cost:</strong> ${selectedInspection.repairPlan.totalEstimatedCost}</p>
-              </div>
+          <Divider sx={{ my: 3 }} />
+
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Findings ({selectedInspection.findings.length})
+              </Typography>
+              <Button
+                startIcon={<AddIcon />}
+                variant="contained"
+                size="small"
+                onClick={() => addFinding(selectedInspection.id)}
+              >
+                Add Finding
+              </Button>
+            </Box>
+
+            {selectedInspection.findings.length === 0 ? (
+              <Typography color="text.secondary">No findings recorded.</Typography>
             ) : (
-              <button onClick={() => generateRepairPlan(selectedInspection.id)}>
-                Generate Repair Plan
-              </button>
+              <Grid container spacing={2}>
+                {selectedInspection.findings.map((f) => (
+                  <Grid size={{ xs: 12, sm: 6 }} key={f.id}>
+                    <Card
+                      sx={{
+                        background: "rgba(0, 0, 0, 0.2)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                      }}
+                    >
+                      <CardContent>
+                        <Typography variant="h6" sx={{ mb: 1 }}>{f.category}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Severity: {f.severity}/10
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Estimated Cost: ${f.estimatedCost}
+                        </Typography>
+                        {f.notes && (
+                          <Typography variant="body2" sx={{ mt: 1 }}>
+                            {f.notes}
+                          </Typography>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
             )}
-          </div>
-        </div>
-      </div>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Box>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Repair Plan
+              </Typography>
+            </Box>
+
+            {selectedInspection.repairPlan ? (
+              <Paper
+                sx={{
+                  p: 3,
+                  background: "linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 153, 204, 0.15) 100%)",
+                  border: "1px solid rgba(0, 212, 255, 0.3)",
+                }}
+              >
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Priority
+                    </Typography>
+                    <Chip
+                      label={selectedInspection.repairPlan.priority}
+                      color={selectedInspection.repairPlan.priority === "HIGH" ? "error" : selectedInspection.repairPlan.priority === "MEDIUM" ? "warning" : "success"}
+                      sx={{ mt: 1 }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Total Estimated Cost
+                    </Typography>
+                    <Typography variant="h6" sx={{ mt: 1 }}>
+                      ${selectedInspection.repairPlan.totalEstimatedCost}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            ) : (
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => generateRepairPlan(selectedInspection.id)}
+              >
+                Generate Repair Plan
+              </Button>
+            )}
+          </Box>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Inspections ({inspections.length})</h2>
-        <button onClick={() => setShowCreate(!showCreate)} style={{ padding: "8px 16px" }}>
-          {showCreate ? "Cancel" : "+ Create Inspection"}
-        </button>
-      </div>
+    <Box>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+        <Box>
+          <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
+            Inspections
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Monitor and analyze turbine inspections
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setShowCreate(true)}
+          sx={{
+            background: "linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #0099cc 0%, #007799 100%)",
+            },
+          }}
+        >
+          Create Inspection
+        </Button>
+      </Box>
 
-      <div style={{ marginBottom: 16, padding: 16, border: "1px solid #ddd", borderRadius: 4, backgroundColor: "#f9f9f9" }}>
-        <h3 style={{ marginTop: 0 }}>Filter Inspections</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-          <div>
-            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Turbine:</label>
-            <select
-              value={filters.turbineId}
-              onChange={(e) => setFilters({ ...filters, turbineId: e.target.value })}
-              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
-            >
-              <option value="">All Turbines</option>
-              {turbines.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Data Source:</label>
-            <select
-              value={filters.dataSource}
-              onChange={(e) => setFilters({ ...filters, dataSource: e.target.value })}
-              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
-            >
-              <option value="">All Sources</option>
-              <option value="DRONE">Drone</option>
-              <option value="MANUAL">Manual</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Start Date:</label>
-            <input
+      <Paper
+        sx={{
+          p: 3,
+          mb: 4,
+          background: "rgba(0, 0, 0, 0.2)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+        }}
+      >
+          <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <SearchIcon /> Filter Inspections
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+            <FormControl fullWidth>
+              <InputLabel>Turbine</InputLabel>
+              <Select
+                value={filters.turbineId}
+                onChange={(e) => setFilters({ ...filters, turbineId: e.target.value })}
+              >
+                <MenuItem value="">All Turbines</MenuItem>
+                {turbines.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+            <FormControl fullWidth>
+              <InputLabel>Data Source</InputLabel>
+              <Select
+                value={filters.dataSource}
+                onChange={(e) => setFilters({ ...filters, dataSource: e.target.value })}
+              >
+                <MenuItem value="">All Sources</MenuItem>
+                <MenuItem value="DRONE">Drone</MenuItem>
+                <MenuItem value="MANUAL">Manual</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+            <TextField
+              label="Start Date"
               type="date"
+              fullWidth
               value={filters.startDate}
               onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
+              InputLabelProps={{ shrink: true }}
             />
-          </div>
-          <div>
-            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>End Date:</label>
-            <input
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+            <TextField
+              label="End Date"
               type="date"
+              fullWidth
               value={filters.endDate}
               onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
+              InputLabelProps={{ shrink: true }}
             />
-          </div>
-          <div>
-            <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em" }}>Search Notes:</label>
-            <input
-              type="text"
-              placeholder="Search in findings notes..."
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+            <TextField
+              label="Search Notes"
+              placeholder="Search in findings..."
+              fullWidth
               value={filters.searchNotes}
               onChange={(e) => setFilters({ ...filters, searchNotes: e.target.value })}
-              style={{ width: "100%", padding: 6, border: "1px solid #ccc", borderRadius: 4 }}
             />
-          </div>
-        </div>
-        <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-          <button onClick={applyFilters} style={{ padding: "8px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
+          </Grid>
+        </Grid>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={applyFilters}
+            sx={{
+              background: "linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #0099cc 0%, #007799 100%)",
+              },
+            }}
+          >
             Apply Filters
-          </button>
-          <button onClick={clearFilters} style={{ padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
+          </Button>
+          <Button variant="outlined" onClick={clearFilters}>
             Clear Filters
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Paper>
 
-      {showCreate && (
-        <form onSubmit={handleSubmit} style={{ marginBottom: 16, padding: 16, border: "1px solid #ccc", borderRadius: 4 }}>
-          <select
-            value={form.turbineId}
-            onChange={(e) => setForm({ ...form, turbineId: e.target.value })}
-            required
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          >
-            <option value="">Select Turbine</option>
-            {turbines.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-            required
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          />
-          <input
-            placeholder="Inspector Name"
-            value={form.inspectorName}
-            onChange={(e) => setForm({ ...form, inspectorName: e.target.value })}
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          />
-          <select
-            value={form.dataSource}
-            onChange={(e) => setForm({ ...form, dataSource: e.target.value as DataSourceType })}
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          >
-            <option value="DRONE">Drone</option>
-            <option value="MANUAL">Manual</option>
-          </select>
-          <input
-            placeholder="Raw Package URL"
-            value={form.rawPackageUrl}
-            onChange={(e) => setForm({ ...form, rawPackageUrl: e.target.value })}
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          />
-          <button type="submit" style={{ width: "100%", padding: 8, marginTop: 8 }}>
+      <Dialog open={showCreate} onClose={() => setShowCreate(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Create New Inspection</DialogTitle>
+        <DialogContent>
+          <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <FormControl fullWidth>
+              <InputLabel>Turbine *</InputLabel>
+              <Select
+                value={form.turbineId}
+                onChange={(e) => setForm({ ...form, turbineId: e.target.value })}
+                required
+              >
+                <MenuItem value="">Select Turbine</MenuItem>
+                {turbines.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Date *"
+              type="date"
+              required
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+            <TextField
+              label="Inspector Name"
+              value={form.inspectorName}
+              onChange={(e) => setForm({ ...form, inspectorName: e.target.value })}
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Data Source</InputLabel>
+              <Select
+                value={form.dataSource}
+                onChange={(e) => setForm({ ...form, dataSource: e.target.value as DataSourceType })}
+              >
+                <MenuItem value="DRONE">Drone</MenuItem>
+                <MenuItem value="MANUAL">Manual</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              label="Raw Package URL"
+              value={form.rawPackageUrl}
+              onChange={(e) => setForm({ ...form, rawPackageUrl: e.target.value })}
+              fullWidth
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCreate(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSubmit}>
             Create
-          </button>
-        </form>
-      )}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <div style={{ display: "grid", gap: 16 }}>
+      <Grid container spacing={3}>
         {inspections.map((inspection) => (
-          <div
-            key={inspection.id}
-            style={{ border: "1px solid #ccc", padding: 16, borderRadius: 4, cursor: "pointer" }}
-            onClick={() => setSelectedInspection(inspection)}
-          >
-            <h3>{inspection.turbine.name} - {new Date(inspection.date).toLocaleDateString()}</h3>
-            <p>Source: {inspection.dataSource}</p>
-            <p>Findings: {inspection.findings.length}</p>
-            {inspection.repairPlan && (
-              <p style={{ color: inspection.repairPlan.priority === "HIGH" ? "red" : inspection.repairPlan.priority === "MEDIUM" ? "orange" : "green" }}>
-                Repair Plan: {inspection.repairPlan.priority} - ${inspection.repairPlan.totalEstimatedCost}
-              </p>
-            )}
-          </div>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={inspection.id}>
+            <Card
+              onClick={() => setSelectedInspection(inspection)}
+              sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                background: "linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 153, 204, 0.1) 100%)",
+                border: "1px solid rgba(0, 212, 255, 0.2)",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                  boxShadow: "0 8px 32px rgba(0, 212, 255, 0.3)",
+                  borderColor: "rgba(0, 212, 255, 0.5)",
+                },
+              }}
+            >
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <DescriptionIcon sx={{ color: "primary.main", mr: 1 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
+                    {inspection.turbine.name}
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                  <CalendarIcon sx={{ fontSize: 16, mr: 1, color: "text.secondary" }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {new Date(inspection.date).toLocaleDateString()}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  {inspection.dataSource === "DRONE" ? (
+                    <FlightIcon sx={{ fontSize: 16, mr: 1, color: "primary.main" }} />
+                  ) : (
+                    <PersonIcon sx={{ fontSize: 16, mr: 1, color: "text.secondary" }} />
+                  )}
+                  <Typography variant="body2" color="text.secondary">
+                    {inspection.dataSource}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Findings: {inspection.findings.length}
+                  </Typography>
+                  {inspection.repairPlan && (
+                    <Chip
+                      label={inspection.repairPlan.priority}
+                      size="small"
+                      color={inspection.repairPlan.priority === "HIGH" ? "error" : inspection.repairPlan.priority === "MEDIUM" ? "warning" : "success"}
+                    />
+                  )}
+                </Box>
+
+                {inspection.repairPlan && (
+                  <Typography variant="body2" color="primary.main" sx={{ mt: 1, fontWeight: 600 }}>
+                    ${inspection.repairPlan.totalEstimatedCost}
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
         ))}
-      </div>
-    </div>
+      </Grid>
+
+      {inspections.length === 0 && (
+        <Paper sx={{ p: 4, textAlign: "center", mt: 4 }}>
+          <Typography variant="h6" color="text.secondary">
+            No inspections yet. Create your first one!
+          </Typography>
+        </Paper>
+      )}
+    </Box>
   );
 };
-

@@ -1,4 +1,25 @@
 import React, { useEffect, useState } from "react";
+import { 
+  ThemeProvider, 
+  createTheme, 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Container, 
+  Box, 
+  Alert,
+  Snackbar,
+  IconButton,
+  Button,
+  Paper,
+  CssBaseline
+} from "@mui/material";
+import { 
+  Logout as LogoutIcon,
+  Dashboard as DashboardIcon,
+  Search as SearchIcon,
+  Settings as SettingsIcon
+} from "@mui/icons-material";
 import { TurbinesPage } from "../components/Turbines";
 import { InspectionsPage } from "../components/Inspections";
 import type { Turbine, Inspection } from "../components/types";
@@ -7,13 +28,77 @@ type Page = "turbines" | "inspections" | "login";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 
+const theme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: {
+      main: "#00d4ff",
+      light: "#33ddff",
+      dark: "#0099cc",
+    },
+    secondary: {
+      main: "#ff6b35",
+      light: "#ff8c5f",
+      dark: "#cc5529",
+    },
+    background: {
+      default: "#0a0e27",
+      paper: "#1a1f3a",
+    },
+    text: {
+      primary: "#ffffff",
+      secondary: "#b0b0b0",
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Helvetica Neue", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontSize: "2.5rem",
+      fontWeight: 700,
+      lineHeight: 1.2,
+    },
+    h2: {
+      fontSize: "2rem",
+      fontWeight: 600,
+      lineHeight: 1.3,
+    },
+    h3: {
+      fontSize: "1.5rem",
+      fontWeight: 600,
+      lineHeight: 1.4,
+    },
+    button: {
+      textTransform: "none",
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          padding: "10px 24px",
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: "none",
+          borderRadius: 12,
+        },
+      },
+    },
+  },
+});
+
 export const App: React.FC = () => {
   const [page, setPage] = useState<Page>("login");
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [turbines, setTurbines] = useState<Turbine[]>([]);
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string; severity: "success" | "error" | "info" } | null>(null);
 
   useEffect(() => {
     if (token) {
@@ -33,15 +118,15 @@ export const App: React.FC = () => {
 
     eventSource.addEventListener("plan", (event) => {
       const data = JSON.parse(event.data);
-      setNotification(`🎉 New Repair Plan generated for inspection ${data.inspectionId}!`);
+      setNotification({ 
+        message: `🎉 New Repair Plan generated for inspection ${data.inspectionId}!`, 
+        severity: "success" 
+      });
       
       // Auto-reload inspections to show the new repair plan
       if (page === "inspections") {
         loadData();
       }
-      
-      // Clear notification after 5 seconds
-      setTimeout(() => setNotification(null), 5000);
     });
 
     return () => {
@@ -94,10 +179,10 @@ export const App: React.FC = () => {
         localStorage.setItem("token", data.token);
         setPage("turbines");
       } else {
-        alert(data.message || "Login failed");
+        setNotification({ message: data.message || "Login failed", severity: "error" });
       }
     } catch (error) {
-      alert("Login failed");
+      setNotification({ message: "Login failed", severity: "error" });
     }
   };
 
@@ -107,66 +192,104 @@ export const App: React.FC = () => {
     setPage("login");
   };
 
+  const handleCloseNotification = () => {
+    setNotification(null);
+  };
+
   if (page === "login") {
-    return <LoginPage onLogin={handleLogin} />;
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <LoginPage onLogin={handleLogin} />
+        {notification && (
+          <Snackbar 
+            open={!!notification} 
+            autoHideDuration={5000} 
+            onClose={handleCloseNotification}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: "100%" }}>
+              {notification.message}
+            </Alert>
+          </Snackbar>
+        )}
+      </ThemeProvider>
+    );
   }
 
   return (
-    <div style={{ padding: 24, fontFamily: "system-ui, sans-serif", maxWidth: 1200, margin: "0 auto" }}>
-      <header style={{ marginBottom: 24, borderBottom: "1px solid #ccc", paddingBottom: 16 }}>
-        <h1>TurbineOps Lite</h1>
-        <nav style={{ display: "flex", gap: 16, marginBottom: 8 }}>
-          <button
-            onClick={() => setPage("turbines")}
-            style={{ padding: "8px 16px", backgroundColor: page === "turbines" ? "#007bff" : "#f0f0f0", color: page === "turbines" ? "white" : "black", border: "none", borderRadius: 4, cursor: "pointer" }}
-          >
-            Turbines
-          </button>
-          <button
-            onClick={() => setPage("inspections")}
-            style={{ padding: "8px 16px", backgroundColor: page === "inspections" ? "#007bff" : "#f0f0f0", color: page === "inspections" ? "white" : "black", border: "none", borderRadius: 4, cursor: "pointer" }}
-          >
-            Inspections
-          </button>
-          <button onClick={handleLogout} style={{ padding: "8px 16px", marginLeft: "auto" }}>
-            Logout
-          </button>
-        </nav>
-      </header>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)" }}>
+        <AppBar position="static" sx={{ backgroundColor: "rgba(26, 31, 58, 0.8)", backdropFilter: "blur(10px)" }}>
+          <Toolbar>
+            <DashboardIcon sx={{ mr: 2, color: "primary.main" }} />
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
+              TurbineOps Lite
+            </Typography>
+            <Button
+              color="inherit"
+              onClick={() => setPage("turbines")}
+              sx={{ 
+                mr: 1,
+                backgroundColor: page === "turbines" ? "primary.main" : "transparent",
+                color: page === "turbines" ? "background.paper" : "inherit",
+                "&:hover": { 
+                  backgroundColor: page === "turbines" ? "primary.dark" : "rgba(255, 255, 255, 0.1)" 
+                }
+              }}
+            >
+              Turbines
+            </Button>
+            <Button
+              color="inherit"
+              onClick={() => setPage("inspections")}
+              sx={{ 
+                mr: 1,
+                backgroundColor: page === "inspections" ? "primary.main" : "transparent",
+                color: page === "inspections" ? "background.paper" : "inherit",
+                "&:hover": { 
+                  backgroundColor: page === "inspections" ? "primary.dark" : "rgba(255, 255, 255, 0.1)" 
+                }
+              }}
+            >
+              Inspections
+            </Button>
+            <IconButton color="inherit" onClick={handleLogout}>
+              <LogoutIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
 
-      {notification && (
-        <div style={{ 
-          backgroundColor: "#28a745", 
-          color: "white", 
-          padding: "12px 16px", 
-          borderRadius: 4, marginBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center"
-        }}>
-          <span>{notification}</span>
-          <button 
-            onClick={() => setNotification(null)}
-            style={{ background: "none", border: "none", color: "white", cursor: "pointer", fontSize: "18px" }}
-          >
-            ×
-          </button>
-        </div>
-      )}
+        <Snackbar 
+          open={!!notification} 
+          autoHideDuration={5000} 
+          onClose={handleCloseNotification}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert onClose={handleCloseNotification} severity={notification?.severity} sx={{ width: "100%" }}>
+            {notification?.message}
+          </Alert>
+        </Snackbar>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          {page === "turbines" && (
-            <TurbinesPage turbines={turbines} token={token!} onReload={loadData} />
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
+              <Typography>Loading...</Typography>
+            </Box>
+          ) : (
+            <>
+              {page === "turbines" && (
+                <TurbinesPage turbines={turbines} token={token!} onReload={loadData} />
+              )}
+              {page === "inspections" && (
+                <InspectionsPage inspections={inspections} turbines={turbines} token={token!} onReload={loadData} />
+              )}
+            </>
           )}
-          {page === "inspections" && (
-            <InspectionsPage inspections={inspections} turbines={turbines} token={token!} onReload={loadData} />
-          )}
-        </>
-      )}
-    </div>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 };
 
@@ -175,35 +298,83 @@ const LoginPage: React.FC<{ onLogin: (email: string, password: string) => void }
   const [password, setPassword] = useState("admin123");
 
   return (
-    <div style={{ maxWidth: 400, margin: "100px auto", padding: 24, border: "1px solid #ccc", borderRadius: 8 }}>
-      <h2>Login</h2>
-      <div style={{ marginBottom: 16 }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", padding: 8, marginBottom: 8 }}
-        />
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ width: "100%", padding: 8, marginBottom: 8 }}
-        />
-      </div>
-      <button
-        onClick={() => onLogin(email, password)}
-        style={{ width: "100%", padding: 8, cursor: "pointer", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: 4 }}
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)",
+      }}
+    >
+      <Paper
+        elevation={24}
+        sx={{
+          maxWidth: 450,
+          width: "100%",
+          p: 4,
+          background: "rgba(26, 31, 58, 0.95)",
+          backdropFilter: "blur(10px)",
+        }}
       >
-        Login
-      </button>
-      <p style={{ fontSize: 12, color: "#666", marginTop: 16 }}>
-        Try: admin@example.com / admin123
-      </p>
-    </div>
+        <Box sx={{ textAlign: "center", mb: 4 }}>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, color: "primary.main" }}>
+            TurbineOps Lite
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Wind Turbine Asset Management Platform
+          </Typography>
+        </Box>
+
+        <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{
+              padding: "14px 16px",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              borderRadius: "8px",
+              color: "#ffffff",
+              fontSize: "16px",
+            }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              padding: "14px 16px",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              borderRadius: "8px",
+              color: "#ffffff",
+              fontSize: "16px",
+            }}
+          />
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => onLogin(email, password)}
+            sx={{
+              mt: 2,
+              py: 1.5,
+              background: "linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #0099cc 0%, #007799 100%)",
+              },
+            }}
+          >
+            Login
+          </Button>
+          <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center", mt: 2 }}>
+            Try: admin@example.com / admin123
+          </Typography>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
