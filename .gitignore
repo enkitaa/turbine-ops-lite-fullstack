@@ -9,8 +9,8 @@ node_modules/
 # Build output
 dist/
 
-backend/prisma/migrations/migration_lock.toml
-backend/prisma/migrations/20251025125921_init/migration.sql
+# backend/prisma/migrations/migration_lock.toml
+# backend/prisma/migrations/20251025125921_init/migration.sql
 
 # OS-specific
 .DS_Store
