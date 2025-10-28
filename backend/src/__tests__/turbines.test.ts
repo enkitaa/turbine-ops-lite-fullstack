@@ -373,10 +373,8 @@ describe("Turbine CRUD Operations", () => {
       await prisma.turbine.delete({ where: { id: newTurbine.id } });
     });
 
-    it("should allow VIEWER to GET but not POST, PUT, or DELETE", async () => {
+    it("should allow VIEWER to GET", async () => {
       await request(app).get("/turbines").set("Authorization", `Bearer ${viewerToken}`).expect(200);
-
-      await prisma.turbine.deleteMany({ where: { name: { startsWith: "Test" } } });
     });
   });
 
